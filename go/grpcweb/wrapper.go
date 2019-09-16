@@ -164,9 +164,14 @@ func (w *WrappedGrpcServer) handleWebSocket(wsConn *websocket.Conn, req *http.Re
 	respWriter := newWebSocketResponseWriter(wsConn)
 	wrappedReader := newWebsocketWrappedReader(wsConn, respWriter, cancelFunc)
 
+	// fetch the Cookies before
+	// overridden by websocket headers
+	cookies := req.Header.Get("Cookie")
+
 	req.Body = wrappedReader
 	req.Method = http.MethodPost
 	req.Header = headers
+	req.Header.Add("Cookie", cookies)
 
 	interceptedRequest, isTextFormat := hackIntoNormalGrpcRequest(req.WithContext(ctx))
 	if isTextFormat {
